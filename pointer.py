@@ -138,8 +138,8 @@ def result_callback(result: GestureRecognizerResult, output_image: mp.Image, tim
                 print(pPointer_finger)
                 if pPointer_finger == None:
                     pPointer_finger = pointer_finger
-                else:
-                    pyautogui.move((pointer_finger.x - pPointer_finger.x) * 50, (pointer_finger.y - pPointer_finger.y) * 50);
+                # else:
+                    # pyautogui.move((pointer_finger.x - pPointer_finger.x) * 50, (pointer_finger.y - pPointer_finger.y) * 50);
             elif latest_gesture_result[0][0].category_name == 'ILoveYou':
                 exit()
     else:
