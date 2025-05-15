@@ -1,141 +1,207 @@
 import cv2
 import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
+import numpy as np
 import time
+import os
+from mediapipe.framework.formats import landmark_pb2 # Import landmark_pb2
 
-# Model path
-model_path = "gesture_recognizer.task"
+# --- Configuration Constants ---
+MODEL_PATH = 'gesture_recognizer.task'  # Path to the gesture recognizer model file
+MIN_DETECTION_CONFIDENCE = 0.7          # Minimum confidence value for hand detection to be considered successful
+MIN_TRACKING_CONFIDENCE = 0.5           # Minimum confidence value for hand landmarks to be tracked successfully
+MIN_PRESENCE_CONFIDENCE = 0.5           # Minimum confidence value for the hand presence score in the hand landmark detection
+NUM_HANDS = 2                           # Maximum number of hands to detect
 
-# Callback function for live stream mode
-def print_result(result: vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
-    global latest_frame
+# --- Global Variables to Store Recognition Results ---
+# These variables will be updated by the MediaPipe callback function
+latest_gesture_result = None
+latest_landmarks = None
+latest_handedness = None
 
-    print("print_result called!")  # Check if the callback is being called
+# --- MediaPipe Setup ---
+# Import MediaPipe solutions for drawing and hand tracking
+mp_hands = mp.solutions.hands
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
 
-    # Convert the MediaPipe image to an OpenCV image for drawing
-    frame = cv2.cvtColor(output_image.numpy_view(), cv2.COLOR_RGB2BGR)
+# Import MediaPipe Tasks vision components
+BaseOptions = mp.tasks.BaseOptions
+GestureRecognizer = mp.tasks.vision.GestureRecognizer
+GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
+GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
+VisionRunningMode = mp.tasks.vision.RunningMode
 
-    if result.hand_landmarks:
-        print("Hand landmarks detected!")  # Check if landmarks are detected
-        for hand_landmarks in result.hand_landmarks:
-            # Draw the hand landmarks and connections on the frame
-            mp.solutions.drawing_utils.draw_landmarks(
-                frame,
-                hand_landmarks,
-                mp.solutions.hands.HAND_CONNECTIONS,
-                mp.solutions.drawing_utils.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=4),
-                mp.solutions.drawing_utils.DrawingSpec(color=(0, 100, 255), thickness=2),
-            )
-            # Get and display finger tip coordinates
-            for i, landmark in enumerate(hand_landmarks.landmark):
-                # Convert normalized coordinates to pixel coordinates
-                height, width, _ = frame.shape
-                x, y = int(landmark.x * width), int(landmark.y * height)
+# --- Callback Function for Gesture Recognition ---
+# This function is called asynchronously when MediaPipe has processed a frame
+def result_callback(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
+    """
+    Callback function to receive and store gesture recognition results.
 
-                if i in [8, 12, 16, 20]:  # Index, Middle, Ring, Pinky finger tips
-                    cv2.circle(frame, (x, y), 10, (255, 0, 0), -1)  # Blue circles
-                    cv2.putText(
-                        frame,
-                        str(i),
-                        (x + 5, y - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5,
-                        (255, 255, 255),
-                        1,
-                    )
+    Args:
+        result: The gesture recognition result from MediaPipe.
+        output_image: The MediaPipe Image object that was processed.
+        timestamp_ms: The timestamp of the processed frame.
+    """
+    global latest_gesture_result, latest_landmarks, latest_handedness
 
-        if result.recognized_gestures:
-            print("Gestures detected!") # Check if gestures are detected
-            for gesture in result.recognized_gestures:
-                if gesture:
-                    gesture_name = gesture[0].category_name
-                    cv2.putText(
-                        frame,
-                        gesture_name,
-                        (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (255, 0, 0),
-                        2,
-                        cv2.LINE_AA,
-                    )
-                else:
-                    cv2.putText(
-                        frame,
-                        "No Gesture",
-                        (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (255, 0, 0),
-                        2,
-                        cv2.LINE_AA,
-                    )
-    latest_frame = frame.copy() # Store the frame.
+    if result.gestures:
+        latest_gesture_result = result.gestures
+        latest_landmarks = result.hand_landmarks
+        latest_handedness = result.handedness
+    else:
+        # If no gestures are detected, clear the previous results
+        latest_gesture_result = None
+        latest_landmarks = None
+        latest_handedness = None
+    # For debugging: print(f'Gesture recognition result: {result.gestures} at {timestamp_ms}ms')
 
-def create_gesture_recognizer():
-    # Base options
-    base_options = python.BaseOptions(model_asset_path="gesture_recognizer.task")  # Or your model path
-
-    options = vision.GestureRecognizerOptions(
-        base_options=base_options,
-        num_hands=1,
-        min_hand_detection_confidence=0.7,
-        min_tracking_confidence=0.5,
-        running_mode=mp.tasks.vision.RunningMode.LIVE_STREAM,
-        result_callback=print_result,
-    )
-
-    # Create the recognizer
-    recognizer = vision.GestureRecognizer.create_from_options(options)
-    return recognizer
-
-latest_frame = None
-
+# --- Main Script Execution ---
 def main():
-    # Initialize OpenCV webcam
-    cap = cv2.VideoCapture(0)
+    global latest_gesture_result, latest_landmarks, latest_handedness # Allow modification of global variables
+
+    # Check if the model file exists
+    if not os.path.exists(MODEL_PATH):
+        print(f"Error: Model file '{MODEL_PATH}' not found.")
+        print(f"Please download it from: https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task")
+        print(f"And place it in the same directory as this script or update MODEL_PATH.")
+        return
+
+    # --- Initialize Gesture Recognizer ---
+    try:
+        base_options = BaseOptions(model_asset_path=MODEL_PATH)
+        options = GestureRecognizerOptions(
+            base_options=base_options,
+            running_mode=VisionRunningMode.LIVE_STREAM, # Process a live stream of data
+            num_hands=NUM_HANDS,
+            min_hand_detection_confidence=MIN_DETECTION_CONFIDENCE,
+            min_hand_presence_confidence=MIN_PRESENCE_CONFIDENCE,
+            min_tracking_confidence=MIN_TRACKING_CONFIDENCE,
+            result_callback=result_callback  # Set the callback function
+        )
+        recognizer = GestureRecognizer.create_from_options(options)
+    except Exception as e:
+        print(f"Error initializing Gesture Recognizer: {e}")
+        return
+
+    # --- OpenCV Video Capture ---
+    cap = cv2.VideoCapture(0)  # 0 for the default webcam
     if not cap.isOpened():
         print("Error: Could not open webcam.")
         return
 
-    # Initialize MediaPipe Gesture Recognizer
-    recognizer = create_gesture_recognizer()
+    frame_timestamp_ms = 0
+    print("Starting webcam feed. Press 'ESC' to quit.")
 
-    frame_count = 0
-    while True:
-        # Read frame from webcam
-        success, frame = cap.read()
-        if not success:
-            print("Error: Could not read frame.")
+    while cap.isOpened():
+        # Read a frame from the webcam
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to grab frame.")
             break
 
-        # Flip the frame horizontally
+        # Flip the frame horizontally for a selfie-view display
+        # This makes the interaction more intuitive
         frame = cv2.flip(frame, 1)
 
-        # Convert the frame to MediaPipe Image
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+        # Convert the BGR image (OpenCV default) to RGB (MediaPipe requirement)
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # Get timestamp
-        timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
-        if timestamp_ms == 0:
-            timestamp_ms = int(time.time() * 1000)
+        # Convert the OpenCV frame to MediaPipe's Image format
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
-        # Send frame to recognizer (use recognize_async for live stream)
-        recognizer.recognize_async(mp_image, timestamp_ms)
+        # Get current timestamp in milliseconds
+        frame_timestamp_ms = int(time.time() * 1000)
 
-        # Display the frame.  Important:  Display the *latest* frame.
-        if latest_frame is not None:
-            cv2.imshow('Hand Gesture Recognition', latest_frame)
+        # Perform gesture recognition asynchronously
+        # The results will be delivered to the `result_callback` function
+        try:
+            recognizer.recognize_async(mp_image, frame_timestamp_ms)
+        except Exception as e:
+            print(f"Error during recognition: {e}")
+            # Continue to the next frame or handle as appropriate
+            continue
 
-        # Check for user input
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+
+        # --- Display Results on Frame ---
+        # Create a copy of the frame to draw on, to keep the original clean if needed
+        display_frame = frame.copy()
+
+        if latest_landmarks:
+            for hand_idx, hand_landmark_list in enumerate(latest_landmarks):
+                # Draw hand landmarks
+                # Create a NormalizedLandmarkList protobuf object
+                hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+                # Populate the protobuf object with landmarks from the result
+                hand_landmarks_proto.landmark.extend([
+                    landmark_pb2.NormalizedLandmark(
+                        x=landmark.x, y=landmark.y, z=landmark.z
+                    ) for landmark in hand_landmark_list
+                ])
+                
+                # Draw the landmarks on the display frame
+                mp_drawing.draw_landmarks(
+                    display_frame,
+                    hand_landmarks_proto,
+                    mp_hands.HAND_CONNECTIONS,  # Connections between landmarks
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style()
+                )
+
+                # Prepare text for gesture and handedness
+                gesture_text = "No gesture detected"
+                handedness_text = ""
+                gesture_confidence = 0.0
+
+                if latest_gesture_result and hand_idx < len(latest_gesture_result):
+                    if latest_gesture_result[hand_idx]: # Check if gesture list is not empty
+                        gesture = latest_gesture_result[hand_idx][0] # Get the top gesture
+                        gesture_text = gesture.category_name
+                        gesture_confidence = gesture.score
+
+                if latest_handedness and hand_idx < len(latest_handedness):
+                    if latest_handedness[hand_idx]: # Check if handedness list is not empty
+                        handedness_text = latest_handedness[hand_idx][0].category_name
+
+                full_text = f"{handedness_text} Hand: {gesture_text} ({gesture_confidence:.2f})"
+
+                # Get coordinates of the wrist (landmark 0) to position the text
+                # Landmarks are normalized, so multiply by frame dimensions
+                image_height, image_width, _ = display_frame.shape
+                wrist_landmark = hand_landmark_list[0] # WRIST landmark
+                text_x = int(wrist_landmark.x * image_width)
+                text_y = int(wrist_landmark.y * image_height) - 30  # Position text slightly above the wrist
+
+                # Ensure text stays within frame boundaries
+                (text_width, text_height), _ = cv2.getTextSize(full_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+                if text_y < text_height: # If text goes above the top edge
+                    text_y = text_y + text_height + 40 # Move it below the wrist
+                if text_x + text_width > image_width: # If text goes beyond the right edge
+                    text_x = image_width - text_width
+                if text_x < 0: # If text goes beyond the left edge
+                    text_x = 0
+
+                # Draw the text on the frame
+                cv2.putText(display_frame, full_text, (text_x, text_y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+        else:
+            # Optional: Display a message if no hands are detected
+            cv2.putText(display_frame, "No hands detected", (20, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+
+
+        # Display the annotated frame
+        cv2.imshow('Hand Gesture Recognition - Press ESC to quit', display_frame)
+
+        # Check for 'ESC' key press to exit
+        if cv2.waitKey(5) & 0xFF == 27:
+            print("Exiting...")
             break
 
-    # Release resources
-    cap.release()
-    cv2.destroyAllWindows()
-    recognizer.close()
+    # --- Cleanup ---
+    if 'recognizer' in locals() and recognizer:
+        recognizer.close() # Release MediaPipe recognizer resources
+    cap.release()          # Release the webcam
+    cv2.destroyAllWindows()# Close all OpenCV windows
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
