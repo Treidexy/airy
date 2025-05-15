@@ -100,7 +100,6 @@ GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
 GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
-
 # --- Callback Function for Gesture Recognition ---
 # This function is called asynchronously when MediaPipe has processed a frame
 def result_callback(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
