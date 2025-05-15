@@ -10,6 +10,8 @@ import threading
 
 from scipy import stats
 
+import pyautogui
+
 class AutoDeletingList:
     def __init__(self):
         self._data = {}  # {(x, y): expiration_timestamp}
@@ -81,6 +83,8 @@ latest_gesture_result = None
 latest_landmarks = None
 latest_handedness = None
 
+pointer_finger = None
+pPointer_finger = None
 pointer_fingers = AutoDeletingList()
 
 # --- MediaPipe Setup ---
@@ -108,14 +112,16 @@ def result_callback(result: GestureRecognizerResult, output_image: mp.Image, tim
         output_image: The MediaPipe Image object that was processed.
         timestamp_ms: The timestamp of the processed frame.
     """
-    global latest_gesture_result, latest_landmarks, latest_handedness, pointer_fingers
+    global latest_gesture_result, latest_landmarks, latest_handedness, pointer_finger, pointer_fingers, pPointer_finger
 
+    pointer_finger = None
     if result.gestures:
         latest_gesture_result = result.gestures
         latest_landmarks = result.hand_landmarks
         latest_handedness = result.handedness
         if len(result.hand_landmarks) > 0:
             if latest_gesture_result[0][0].category_name == 'Open_Palm':
+                pPointer_finger = None
                 pointer_finger = result.hand_landmarks[0][mp_hands.HandLandmark.INDEX_FINGER_TIP]
                 pointer_fingers.add((pointer_finger.x, pointer_finger.y), delay=0.5)
                 if len(pointer_fingers) > 15:
@@ -129,7 +135,12 @@ def result_callback(result: GestureRecognizerResult, output_image: mp.Image, tim
                         else:
                             os.system('hyprctl dispatch workspace +1')
             elif latest_gesture_result[0][0].category_name == 'Pointing_Up':
-                
+                pointer_finger = result.hand_landmarks[0][mp_hands.HandLandmark.INDEX_FINGER_TIP]
+                print(pPointer_finger)
+                if pPointer_finger == None:
+                    pPointer_finger = pointer_finger
+                else:
+                    pyautogui.move((pointer_finger.x - pPointer_finger.x) * 50, (pointer_finger.y - pPointer_finger.y) * 50);
             elif latest_gesture_result[0][0].category_name == 'ILoveYou':
                 exit()
     else:
