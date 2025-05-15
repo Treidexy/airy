@@ -7,9 +7,6 @@ import time
 # Model path
 model_path = "gesture_recognizer.task"
 
-# Global variable to store the latest frame
-latest_frame = None
-
 # Callback function for live stream mode
 def print_result(result: vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
     global latest_frame
@@ -74,9 +71,7 @@ def print_result(result: vision.GestureRecognizerResult, output_image: mp.Image,
                         2,
                         cv2.LINE_AA,
                     )
-
-    latest_frame = frame.copy()
-    cv2.imshow('Hand Gesture Recognition', frame)
+    latest_frame = frame.copy() # Store the frame.
 
 def create_gesture_recognizer():
     # Base options
