@@ -6,6 +6,8 @@ import numpy as np
 from motion.base import Motion
 from motion.swap_workspace import SwapWorkspaceMotion
 from motion.scroll import ScrollMotion
+from motion.mouse import MouseMotion
+from motion.exit import ExitMotion
 
 recognizer = None
 
@@ -15,9 +17,13 @@ latest_handedness = None
 
 HandLandmark = mp.solutions.hands.HandLandmark
 
+fframe = None
+
 motions: list[Motion] = [
     ScrollMotion(),
-    SwapWorkspaceMotion()
+    MouseMotion(),
+    SwapWorkspaceMotion(),
+    ExitMotion()
 ]
 
 def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
@@ -29,7 +35,7 @@ def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_imag
 
         for hand_idx in range(len(result.gestures)):
             for motion in motions:
-                motion.update(latest_gestures[hand_idx][0], latest_landmarks[hand_idx])
+                motion.update(latest_gestures[hand_idx][0], latest_landmarks[hand_idx], fframe)
     else:
         latest_gestures = None
         latest_landmarks = None
@@ -50,6 +56,9 @@ def init():
     recognizer = mp.tasks.vision.GestureRecognizer.create_from_options(options)
 
 def recognize(frame, frame_timestamp_ms):
+    global fframe
+    fframe = frame
+
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
     recognizer.recognize_async(mp_image, frame_timestamp_ms)
 

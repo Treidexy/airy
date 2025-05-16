@@ -17,7 +17,7 @@ class ScrollMotion(Motion):
         for mark in self.list:
             cv2.circle(frame, (int(mark[0] * frame_width), int(mark[1] * frame_height)), 20, (0, 255, 0), 2)
 
-    def update(self, gesture, hand_landmarks):
+    def update(self, gesture, hand_landmarks, frame):
         if gesture.category_name == 'Victory':
             hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
             self.list.add((hand.x, hand.y), delay=0.4)
