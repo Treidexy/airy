@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from motion.base import Motion
 from motion.swap_workspace import SwapWorkspaceMotion
+from motion.scroll import ScrollMotion
 
 recognizer = None
 
@@ -15,6 +16,7 @@ latest_handedness = None
 HandLandmark = mp.solutions.hands.HandLandmark
 
 motions: list[Motion] = [
+    ScrollMotion(),
     SwapWorkspaceMotion()
 ]
 
@@ -66,7 +68,6 @@ def draw_hand(frame, hand_idx, hand_landmark_list):
             x=landmark.x, y=landmark.y, z=landmark.z
         ) for landmark in hand_landmark_list
     ])
-
 
     mp.solutions.drawing_utils.draw_landmarks(
         frame,
