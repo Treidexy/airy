@@ -12,7 +12,7 @@ if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 num_samples = 1000  # Number of samples to collect per gesture
-gestures = ['pinch', 'unpinch', 'none']
+gestures = ['fist', 'palm']
 labels = []
 data = []
 
