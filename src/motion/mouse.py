@@ -37,7 +37,7 @@ class MouseMotion(Motion):
             self.list.clear()
             if len(self.toolazy) == 0:
                 os.system('ydotool click c0')
-            self.toolazy.add(0, delay=1)
+            self.toolazy.add(0, delay=0.8)
         else:
             self.toolazy.clear()
             self.list.clear()
