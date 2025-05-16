@@ -2,6 +2,9 @@ import mediapipe as mp
 import const
 from mediapipe.framework.formats import landmark_pb2
 import cv2
+import numpy as np
+from motion.base import Motion
+from motion.swap_workspace import SwapWorkspaceMotion
 
 recognizer = None
 
@@ -11,12 +14,20 @@ latest_handedness = None
 
 HandLandmark = mp.solutions.hands.HandLandmark
 
+motions: list[Motion] = [
+    SwapWorkspaceMotion()
+]
+
 def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
     global latest_gestures, latest_landmarks, latest_handedness
     if result.gestures:
         latest_gestures = result.gestures
         latest_landmarks = result.hand_landmarks
         latest_handedness = result.handedness
+
+        for hand_idx in range(len(result.gestures)):
+            for motion in motions:
+                motion.update(latest_gestures[hand_idx][0], latest_landmarks[hand_idx])
     else:
         latest_gestures = None
         latest_landmarks = None
