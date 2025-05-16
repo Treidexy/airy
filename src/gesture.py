@@ -56,6 +56,8 @@ def draw(frame):
         for hand_idx, hand_landmark_list in enumerate(latest_landmarks):
             draw_hand(frame, hand_idx, hand_landmark_list)
             draw_gesture(frame, hand_idx, hand_landmark_list)
+    for motion in motions:
+        motion.draw(frame)
 
 def draw_hand(frame, hand_idx, hand_landmark_list):
     hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()

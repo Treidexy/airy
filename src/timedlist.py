@@ -31,6 +31,10 @@ class TimedList:
         with self._lock:
             current_time = time.time()
             return [item for item, timestamp in self._data.items() if timestamp > current_time]
+        
+    def clear(self):
+        with self._lock:
+            self._data.clear()
 
     def _clean_expired_elements(self):
         while not self._stop_event.is_set():
@@ -39,6 +43,15 @@ class TimedList:
                 expired_items = [item for item, timestamp in self._data.items() if timestamp <= time.time()]
                 for item in expired_items:
                     del self._data[item]
+
+    # only if list of tuples
+    def get_separate_lists(self):
+        with self._lock:
+            current_time = time.time()
+            active_data = [(x, y) for (x, y), timestamp in self._data.items() if timestamp > current_time]
+            x_values = [coord[0] for coord in active_data]
+            y_values = [coord[1] for coord in active_data]
+            return x_values, y_values
 
     def stop(self):
         self._stop_event.set()

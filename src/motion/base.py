@@ -1,4 +1,5 @@
 import mediapipe as mp
+import cv2
 
 class Motion:
     def draw(self, frame):
