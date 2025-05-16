@@ -5,9 +5,9 @@ import cv2
 import numpy as np
 from motion.base import Motion
 from motion.swap_workspace import SwapWorkspaceMotion
-from motion.scroll import ScrollMotion
 from motion.mouse import MouseMotion
-from motion.exit import ExitMotion
+from motion.scroll import ScrollMotion
+from motion.click import ClickMotion
 
 recognizer = None
 
@@ -20,10 +20,10 @@ HandLandmark = mp.solutions.hands.HandLandmark
 fframe = None
 
 motions: list[Motion] = [
-    ScrollMotion(),
-    MouseMotion(),
     SwapWorkspaceMotion(),
-    ExitMotion()
+    MouseMotion(),
+    ScrollMotion(),
+    ClickMotion()
 ]
 
 def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
@@ -35,7 +35,13 @@ def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_imag
 
         for hand_idx in range(len(result.gestures)):
             for motion in motions:
-                motion.update(latest_gestures[hand_idx][0], latest_landmarks[hand_idx], fframe)
+                hand = latest_handedness[hand_idx][0].category_name
+                gesture = latest_gestures[hand_idx][0].category_name
+                if hand == motion.hand:
+                    if gesture == motion.gesture:
+                        motion.update(latest_landmarks[hand_idx], fframe)
+                    elif motion.active:
+                        motion.cancel()
     else:
         latest_gestures = None
         latest_landmarks = None

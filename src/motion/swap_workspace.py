@@ -10,6 +10,7 @@ HandLandmark = mp.solutions.hands.HandLandmark
 
 class SwapWorkspaceMotion(Motion):
     def __init__(self):
+        super().__init__(hand='Left', gesture='Open_Palm')
         self.list = TimedList()
 
     def draw(self, frame):
@@ -17,21 +18,21 @@ class SwapWorkspaceMotion(Motion):
         for mark in self.list:
             cv2.circle(frame, (int(mark[0] * frame_width), int(mark[1] * frame_height)), 20, (255, 0, 0), 2)
 
-    def update(self, gesture, hand_landmarks, frame):
-        if gesture.category_name == 'Open_Palm':
-            hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
-            self.list.add((hand.x, hand.y), delay=0.4)
+    def update(self, hand_landmarks, frame):
+        hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
+        self.list.add((hand.x, hand.y), delay=0.4)
 
-            if len(self.list) > 9:
-                x, y = self.list.get_separate_lists()
-                r = stats.linregress(x, y)
-                swipe = x[-1] - x[0]
-                if r.stderr < 0.1 and abs(swipe) > 0.11 and abs(r.slope) < 0.5:
-                    self.list.clear()
-                    if swipe < 0:
-                        os.system('hyprctl dispatch workspace -1')
-                    else:
-                        os.system('hyprctl dispatch workspace +1')
-        else:
-            self.list.clear()
+        if len(self.list) > 9:
+            x, y = self.list.get_separate_lists()
+            r = stats.linregress(x, y)
+            swipe = x[-1] - x[0]
+            if r.stderr < 0.1 and abs(swipe) > 0.11 and abs(r.slope) < 0.5:
+                self.list.clear()
+                if swipe < 0:
+                    os.system('hyprctl dispatch workspace -1')
+                else:
+                    os.system('hyprctl dispatch workspace +1')
     
+    def cancel(self):
+        super().cancel()
+        self.list.clear()
