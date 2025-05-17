@@ -1,14 +1,7 @@
 import mediapipe as mp
-import const
-from mediapipe.framework.formats import landmark_pb2
-import cv2
 import numpy as np
-from motion.base import Motion
+from motion.base import Motion, Gesture
 from motion.swap_workspace import SwapWorkspaceMotion
-from motion.mouse import MouseMotion
-from motion.scroll import ScrollMotion
-from motion.click import ClickMotion
-import threading
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -21,44 +14,47 @@ recognizer = mp_hands.Hands(
     min_tracking_confidence = 0.5,
 )
 
-left = None
-right = None
+motions: dict[Gesture, Motion] = {
+    Gesture.ALL: SwapWorkspaceMotion()
+}
+
+hands = [None, None]
+
+def get_gesture(landmarks: list, side: int) -> Gesture:
+    gesture = Gesture.from_side(side)
+
+    
+    
+    finger_tips_ids = [HandLandmark.INDEX_FINGER_TIP, HandLandmark.MIDDLE_FINGER_TIP, HandLandmark.RING_FINGER_TIP, HandLandmark.PINKY_TIP]
+    for fingy, tip_id in enumerate(finger_tips_ids):
+        if landmarks[tip_id].y < landmarks[tip_id - 2].y:
+            gesture |= Gesture.from_fingy(fingy)
+    return gesture
 
 def recognize(frame):
-    global left, right
+    global hands
 
     results = recognizer.process(frame)
-    left = None
-    right = None
+    hands = [None, None]
 
     if results.multi_handedness and results.multi_hand_landmarks:
         for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
-            hand = handedness.classification[0].index
+            side = handedness.classification[0].index
             
-            if hand == 0:
-                left = hand_landmarks
-            elif hand == 1:
-                right = hand_landmarks
-            else:
-                print('we got an anomaly')
+            hands[side] = hand_landmarks
+            gesture = get_gesture(hand_landmarks.landmark, side)
+            print(gesture)
 
 def draw_hands(frame):
-    if left:
-        mp_drawing.draw_landmarks(
-            frame,
-            left,
-            mp_hands.HAND_CONNECTIONS,
-            mp_drawing_styles.get_default_hand_landmarks_style(),
-            mp_drawing_styles.DrawingSpec(color=(0,0,255), thickness=2),
-        )
-    if right:
-        mp_drawing.draw_landmarks(
-            frame,
-            right,
-            mp_hands.HAND_CONNECTIONS,
-            mp_drawing_styles.get_default_hand_landmarks_style(),
-            mp_drawing_styles.DrawingSpec(color=(255,0,0), thickness=2),
-        )
+    for side, hand_landmarks in enumerate(hands):
+        if hand_landmarks:
+            mp_drawing.draw_landmarks(
+                frame,
+                hand_landmarks,
+                mp_hands.HAND_CONNECTIONS,
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.DrawingSpec(color=(side * 255,0, (1 - side) * 255), thickness=2),
+            )
 
 def draw_ui(frame):
     pass
