@@ -24,7 +24,7 @@ class ScrollMotion(Motion):
         hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
         self.list.add((hand.x, hand.y), delay=0.4)
 
-        if len(self.list) > 9:
+        if len(self.list) > 5:
             x, y = self.list.get_separate_lists()
             dx = (x[1] - x[0]) * frame_width * 0.3
             dy = (y[1] - y[0]) * frame_height * 0.3

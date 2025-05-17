@@ -22,9 +22,10 @@ class MouseMotion(Motion):
         frame_height, frame_width, _ = frame.shape
 
         hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
-        self.list.add((hand.x, hand.y), delay=0.4)
+        self.list.add((hand.x, hand.y), delay=0.5)
 
-        if len(self.list) > 9:
+        print(len(self.list))
+        if len(self.list) > 5:
             x, y = self.list.get_separate_lists()
             dx = (x[1] - x[0]) * frame_width * 3
             dy = (y[1] - y[0]) * frame_height * 3

@@ -20,9 +20,9 @@ class SwapWorkspaceMotion(Motion):
 
     def update(self, hand_landmarks, frame):
         hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
-        self.list.add((hand.x, hand.y), delay=0.4)
+        self.list.add((hand.x, hand.y), delay=0.5)
 
-        if len(self.list) > 9:
+        if len(self.list) > 5:
             x, y = self.list.get_separate_lists()
             r = stats.linregress(x, y)
             swipe = x[-1] - x[0]

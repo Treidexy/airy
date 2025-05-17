@@ -8,6 +8,7 @@ from motion.swap_workspace import SwapWorkspaceMotion
 from motion.mouse import MouseMotion
 from motion.scroll import ScrollMotion
 from motion.click import ClickMotion
+import threading
 
 recognizer = None
 
@@ -18,6 +19,7 @@ latest_handedness = None
 HandLandmark = mp.solutions.hands.HandLandmark
 
 fframe = None
+doing = False
 
 motions: list[Motion] = [
     SwapWorkspaceMotion(),
@@ -26,26 +28,34 @@ motions: list[Motion] = [
     ClickMotion()
 ]
 
+def dispatch():
+    global count
+
+    for hand_idx in range(len(latest_gestures)):
+        for motion in motions:
+            hand = latest_handedness[hand_idx][0].category_name
+            gesture = latest_gestures[hand_idx][0].category_name
+            if hand == motion.hand:
+                if gesture == motion.gesture:
+                    motion.update(latest_landmarks[hand_idx], fframe)
+                elif motion.active:
+                    motion.cancel()
+
 def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
-    global latest_gestures, latest_landmarks, latest_handedness
+    global latest_gestures, latest_landmarks, latest_handedness, doing
+    
     if result.gestures:
         latest_gestures = result.gestures
         latest_landmarks = result.hand_landmarks
         latest_handedness = result.handedness
 
-        for hand_idx in range(len(result.gestures)):
-            for motion in motions:
-                hand = latest_handedness[hand_idx][0].category_name
-                gesture = latest_gestures[hand_idx][0].category_name
-                if hand == motion.hand:
-                    if gesture == motion.gesture:
-                        motion.update(latest_landmarks[hand_idx], fframe)
-                    elif motion.active:
-                        motion.cancel()
+        dispatch()
+        # threading.Thread(target=dispatch).start()
     else:
         latest_gestures = None
         latest_landmarks = None
         latest_handedness = None
+    doing = False
 
 def init():
     global recognizer
@@ -62,11 +72,13 @@ def init():
     recognizer = mp.tasks.vision.GestureRecognizer.create_from_options(options)
 
 def recognize(frame, frame_timestamp_ms):
-    global fframe
+    global fframe, doing
     fframe = frame
-
-    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-    recognizer.recognize_async(mp_image, frame_timestamp_ms)
+    
+    if not doing:
+        doing = True
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+        recognizer.recognize_async(mp_image, frame_timestamp_ms)
 
 def draw(frame):
     if latest_landmarks:
