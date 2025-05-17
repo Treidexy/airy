@@ -42,16 +42,24 @@ python src/main,py
 
 ### Swap Workspace
 
-With an open palm on your right hand, smoothly drag your hand in one direction.
+With an open palm on right hand, smoothly drag your hand in one direction.
 
 ### Move Mouse
 
-Pointing your right index finger up, move your hand around.
-
-### Click
-
-Point your left index finger up to left click.
+Pointing your index finger up, move your hand around.
 
 ### Scroll
 
 With both your right index and middle fingers pointing up, move your hand around.
+
+### Click
+
+With your palm facing away from the camera point one finger to left-click and two fingers to right-click.
+
+### Youtube.com
+
+With your palm facing away from the camera, put up three fingers to type `https://youtube.com\n`.
+
+### Fullscreen
+
+With your palm facing away from the camera, put up four fingers to press `f`.

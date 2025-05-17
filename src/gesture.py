@@ -20,20 +20,21 @@ recognizer = mp_hands.Hands(
 )
 
 motions: dict[Gesture, Motion] = {
-    Gesture.RIGHT | Gesture.FRONT | Gesture.FIVE: SwapWorkspaceMotion(),
-    Gesture.RIGHT | Gesture.FRONT | Gesture.ONE: MouseMotion(),
-    Gesture.RIGHT | Gesture.FRONT | Gesture.TWO: ScrollMotion(),
-    Gesture.RIGHT | Gesture.BACK | Gesture.ONE: ClickMotion(0),
-    Gesture.RIGHT | Gesture.BACK | Gesture.TWO: ClickMotion(1),
-    Gesture.RIGHT | Gesture.BACK | Gesture.THREE: TypeMotion('youtube.com\\n'),
-    Gesture.RIGHT | Gesture.BACK | Gesture.FOUR: TypeMotion('f'),
+    Gesture.FRONT | Gesture.FIVE: SwapWorkspaceMotion(),
+    Gesture.FRONT | Gesture.ONE: MouseMotion(),
+    Gesture.FRONT | Gesture.TWO: ScrollMotion(),
+    Gesture.BACK | Gesture.ONE: ClickMotion(0),
+    Gesture.BACK | Gesture.TWO: ClickMotion(1),
+    Gesture.BACK | Gesture.THREE: TypeMotion('https://youtube.com\\n'),
+    Gesture.BACK | Gesture.FOUR: TypeMotion('f'),
 }
 
 handmarks = None
 side = None
 
 def get_gesture(landmarks: list, side: int) -> Gesture:
-    gesture = Gesture.from_side(side)
+    # gesture = Gesture.from_side(side)
+    gesture = Gesture.NONE
 
     a = landmarks[HandLandmark.INDEX_FINGER_MCP]
     b = landmarks[HandLandmark.PINKY_MCP]

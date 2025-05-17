@@ -5,8 +5,8 @@ class Gesture:
     def __init__(self, n: int):
         self.n = n
 
-    def from_side(side):
-        return Gesture(side)
+    # def from_side(side):
+        # return Gesture(side)
     def from_face(face):
         return Gesture(face << 1)
     # THUMB IS NOT A FINGY (for convenience)
@@ -37,8 +37,8 @@ class Gesture:
             return NotImplemented
         return self.n == other.n
 
-Gesture.LEFT = Gesture(0 << 0)
-Gesture.RIGHT = Gesture(1 << 0)
+# Gesture.LEFT = Gesture(0 << 0)
+# Gesture.RIGHT = Gesture(1 << 0)
 
 Gesture.FRONT = Gesture(0 << 1)
 Gesture.BACK = Gesture(1 << 1)
