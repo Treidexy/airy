@@ -51,3 +51,7 @@ Pointing your right index finger up, move your hand around.
 ### Click
 
 Point your left index finger up to left click.
+
+### Scroll
+
+With both your right index and middle fingers pointing up, move your hand around.
