@@ -2,6 +2,7 @@ import mediapipe as mp
 import numpy as np
 from motion.base import Motion, Gesture
 from motion.swap_workspace import SwapWorkspaceMotion
+from motion.mouse import MouseMotion
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -15,7 +16,8 @@ recognizer = mp_hands.Hands(
 )
 
 motions: dict[Gesture, Motion] = {
-    Gesture.RIGHT | Gesture.PALM: SwapWorkspaceMotion()
+    Gesture.RIGHT | Gesture.FRONT | Gesture.PALM: SwapWorkspaceMotion(),
+    Gesture.RIGHT | Gesture.FRONT | Gesture.INDEX: MouseMotion(),
 }
 
 hands = [None, None]
@@ -29,12 +31,14 @@ def get_gesture(landmarks: list, side: int) -> Gesture:
     # https://www.geeksforgeeks.org/orientation-3-ordered-points/
     o = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
 
-    if o * (landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.INDEX_FINGER_MCP].x) > 0:
+    if o * (landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.THUMB_IP].x) > 0:
         gesture |= Gesture.THUMB
     
-    finger_tips_ids = [HandLandmark.INDEX_FINGER_TIP, HandLandmark.MIDDLE_FINGER_TIP, HandLandmark.RING_FINGER_TIP, HandLandmark.PINKY_TIP]
-    for fingy, tip_id in enumerate(finger_tips_ids):
-        if landmarks[tip_id].y < landmarks[tip_id - 2].y:
+    tip_ids = [HandLandmark.INDEX_FINGER_TIP, HandLandmark.MIDDLE_FINGER_TIP, HandLandmark.RING_FINGER_TIP, HandLandmark.PINKY_TIP]
+    pip_ids = [HandLandmark.INDEX_FINGER_PIP, HandLandmark.MIDDLE_FINGER_PIP, HandLandmark.RING_FINGER_PIP, HandLandmark.PINKY_PIP]
+    mcp_ids = [HandLandmark.INDEX_FINGER_MCP, HandLandmark.MIDDLE_FINGER_MCP, HandLandmark.RING_FINGER_MCP, HandLandmark.PINKY_MCP]
+    for fingy, (tip_id, pip_id, mcp_id) in enumerate(zip(tip_ids, pip_ids, mcp_ids)):
+        if landmarks[tip_id].y < landmarks[mcp_id].y and landmarks[tip_id].y < landmarks[pip_id].y:
             gesture |= Gesture.from_fingy(fingy)
     return gesture
 

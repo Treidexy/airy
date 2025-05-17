@@ -7,9 +7,11 @@ class Gesture:
 
     def from_side(side):
         return Gesture(side)
+    def from_side(face):
+        return Gesture(face << 1)
     # THUMB IS NOT A FINGY (for convenience)
     def from_fingy(fingy):
-        return Gesture(1 << (fingy + 2))
+        return Gesture(1 << (fingy + 3))
 
     def __or__(self, other):
         if isinstance(other, Gesture):
@@ -38,11 +40,14 @@ class Gesture:
 Gesture.LEFT = Gesture(0 << 0)
 Gesture.RIGHT = Gesture(1 << 0)
 
-Gesture.THUMB = Gesture(1 << 1)
-Gesture.INDEX = Gesture(1 << 2)
-Gesture.MIDDLE = Gesture(1 << 3)
-Gesture.RING = Gesture(1 << 4)
-Gesture.PINKY = Gesture(1 << 5)
+Gesture.FRONT = Gesture(0 << 1)
+Gesture.BACK = Gesture(1 << 1)
+
+Gesture.THUMB = Gesture.from_fingy(-1)
+Gesture.INDEX = Gesture.from_fingy(0)
+Gesture.MIDDLE = Gesture.from_fingy(1)
+Gesture.RING = Gesture.from_fingy(2)
+Gesture.PINKY = Gesture.from_fingy(3)
 
 Gesture.NONE = Gesture(0)
 Gesture.PALM = Gesture.THUMB | Gesture.INDEX | Gesture.MIDDLE | Gesture.RING | Gesture.PINKY

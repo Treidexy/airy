@@ -9,7 +9,6 @@ HandLandmark = mp.solutions.hands.HandLandmark
 
 class MouseMotion(Motion):
     def __init__(self):
-        super().__init__(hand='Left', gesture='Pointing_Up')
         self.list = TimedList()
 
     def draw(self, frame):
@@ -17,10 +16,10 @@ class MouseMotion(Motion):
         for mark in self.list:
             cv2.circle(frame, (int(mark[0] * frame_width), int(mark[1] * frame_height)), 20, (0, 0, 255), 2)
 
-    def update(self, hand_landmarks, frame):
+    def update(self, landmarks, frame):
         frame_height, frame_width, _ = frame.shape
 
-        hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
+        hand = landmarks[HandLandmark.INDEX_FINGER_TIP]
         self.list.add((hand.x, hand.y), delay=0.5)
 
         if len(self.list) > 5:
@@ -28,4 +27,5 @@ class MouseMotion(Motion):
             dx = (x[1] - x[0]) * frame_width * 3
             dy = (y[1] - y[0]) * frame_height * 3
             # print(dx, dy)
-            os.system(f'ydotool mousemove -x {dx} -y {dy}')
+            if abs(dx) + abs(dy) < 50:
+                os.system(f'ydotool mousemove -x {dx} -y {dy}')
