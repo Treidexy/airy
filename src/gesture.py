@@ -16,7 +16,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 
 HandLandmark = mp.solutions.hands.HandLandmark
 
-hands = mp_hands.Hands(
+recognizer = mp_hands.Hands(
     min_detection_confidence = 0.7,
     min_tracking_confidence = 0.5,
 )
@@ -27,25 +27,17 @@ right = None
 def recognize(frame):
     global left, right
 
-    results = hands.process(frame)
+    results = recognizer.process(frame)
     left = None
     right = None
 
     if results.multi_handedness and results.multi_hand_landmarks:
-        for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
-            landmarks = hand_landmarks.landmark
-            hand = results.multi_handedness[i].classification[0]
-            print(hand)
-
-            a = landmarks[HandLandmark.INDEX_FINGER_MCP]
-            b = landmarks[HandLandmark.PINKY_MCP]
-            c = landmarks[HandLandmark.WRIST]
-            # https://www.geeksforgeeks.org/orientation-3-ordered-points/
-            o = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
+        for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
+            hand = handedness.classification[0].index
             
-            if o < 0:
+            if hand == 0:
                 left = hand_landmarks
-            elif o > 0:
+            elif hand == 1:
                 right = hand_landmarks
             else:
                 print('we got an anomaly')
