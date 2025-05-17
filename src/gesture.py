@@ -21,25 +21,28 @@ HandLandmark = mp.solutions.hands.HandLandmark
 fframe = None
 doing = False
 
-motions: list[Motion] = [
-    SwapWorkspaceMotion(),
-    MouseMotion(),
-    ScrollMotion(),
-    ClickMotion()
-]
+motions: dict[(str, str), Motion] = {
+    ('Left', 'Open_Palm'): SwapWorkspaceMotion(),
+    ('Left', 'Pointing_Up'): MouseMotion(),
+    ('Left', 'Victory'): ScrollMotion(),
+    ('Right', 'Pointing_Up'): ClickMotion()
+}
 
 def dispatch():
-    global count
+    global count, motions
 
     for hand_idx in range(len(latest_gestures)):
-        for motion in motions:
-            hand = latest_handedness[hand_idx][0].category_name
-            gesture = latest_gestures[hand_idx][0].category_name
-            if hand == motion.hand:
-                if gesture == motion.gesture:
-                    motion.update(latest_landmarks[hand_idx], fframe)
-                elif motion.active:
-                    motion.cancel()
+        # for motion in motions:
+        hand = latest_handedness[hand_idx][0].category_name
+        gesture = latest_gestures[hand_idx][0].category_name
+        motion = motions.get((hand, gesture))
+        if motion:
+            motion.update(latest_landmarks[hand_idx], fframe)
+        #     if hand == motion.hand:
+        #         if gesture == motion.gesture:
+        #             motion.update(latest_landmarks[hand_idx], fframe)
+        #         elif motion.active:
+        #             motion.cancel()
 
 def result_callback(result: mp.tasks.vision.GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
     global latest_gestures, latest_landmarks, latest_handedness, doing
@@ -85,7 +88,7 @@ def draw(frame):
         for hand_idx, hand_landmark_list in enumerate(latest_landmarks):
             draw_hand(frame, hand_idx, hand_landmark_list)
             draw_gesture(frame, hand_idx, hand_landmark_list)
-    for motion in motions:
+    for motion in motions.values():
         motion.draw(frame)
 
 def draw_hand(frame, hand_idx, hand_landmark_list):
