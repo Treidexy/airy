@@ -1,4 +1,5 @@
-from motion.base import Motion, Gesture
+from gesture import Gesture
+from motion.base import Motion
 from timedlist import TimedList
 
 import cv2

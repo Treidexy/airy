@@ -1,4 +1,5 @@
-from motion.base import Motion, Gesture
+from gesture import Gesture
+from motion.base import Motion
 from motion.swap_workspace import SwapWorkspaceMotion
 from motion.mouse import MouseMotion
 from motion.click import ClickMotion

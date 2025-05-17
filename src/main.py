@@ -1,8 +1,6 @@
-import os
 import cv2
 
-import config
-import gesture
+import process
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -19,12 +17,12 @@ def main():
             break
 
         frame = cv2.flip(frame, 1)
-        gesture.recognize(frame)
+        process.recognize(frame)
 
         display_frame = frame.copy();
-        gesture.draw_hands(display_frame)
+        process.draw_hands(display_frame)
         # display_frame= cv2.flip(display_frame, 1)
-        gesture.draw_ui(display_frame)
+        process.draw_ui(display_frame)
 
         cv2.imshow('Airy Hand Magic', display_frame)
         if cv2.waitKey(5) & 0xFF == 27:
