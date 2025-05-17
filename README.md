@@ -63,3 +63,11 @@ With your palm facing away from the camera, put up three fingers to type `https:
 ### Fullscreen
 
 With your palm facing away from the camera, put up four fingers to press `f`.
+
+### Jump
+
+With two fingers, point left or right to press `j` or `l`.
+
+### Hold
+
+Palm away, point two fingers down to hold the mouse button. Point one finger down to release.
