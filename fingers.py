@@ -10,29 +10,25 @@ cap = cv2.VideoCapture(0)
 def count_fingers(image, results):
     if results.multi_hand_landmarks:
         for hand_idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
-            # Get hand landmarks
-            landmarks = []
-            for id, lm in enumerate(hand_landmarks.landmark):
-                h, w, c = image.shape
-                cx, cy = int(lm.x * w), int(lm.y * h)
-                landmarks.append((cx, cy))
+            landmarks = hand_landmarks.landmark
 
             # Define finger tips IDs
             finger_tips_ids = [8, 12, 16, 20]
-            count = 0
+            count = [0, 0, 0, 0, 0]
 
+            # Check if thumb is up
+            if landmarks[5].x < landmarks[17].x:
+                if landmarks[4].x < landmarks[3].x:
+                    count[0] += 1
+            elif landmarks[5].x > landmarks[17].x:
+                if landmarks[4].x > landmarks[3].x:
+                    count[0] += 1
             # Check if each finger is up
-            if landmarks[5][0] < landmarks[17][0]: # Check if thumb is up
-                if landmarks[4][0] < landmarks[3][0]:
-                    count += 1
-            elif landmarks[5][0] > landmarks[17][0]:
-                if landmarks[4][0] > landmarks[3][0]:
-                    count += 1
-            for tip_id in finger_tips_ids:
-                if landmarks[tip_id][1] < landmarks[tip_id - 2][1]:
-                    count += 1
+            for fingy, tip_id in enumerate(finger_tips_ids):
+                if landmarks[tip_id].y < landmarks[tip_id - 2].y:
+                    count[fingy + 1] += 1
             # Display the count
-            cv2.putText(image, str(count), (50 + hand_idx * 80, 150), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 0, 0), 10)
+            cv2.putText(image, str(count), (50, 150 + hand_idx * 80), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), 10)
 
 while cap.isOpened():
     success, image = cap.read()
