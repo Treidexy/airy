@@ -4,7 +4,6 @@ from timedlist import TimedList
 import cv2
 import os
 import mediapipe as mp
-from scipy import stats
 
 HandLandmark = mp.solutions.hands.HandLandmark
 
