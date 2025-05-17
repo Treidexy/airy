@@ -1,6 +1,7 @@
 import cv2
 
 import process
+import config
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -19,12 +20,13 @@ def main():
         frame = cv2.flip(frame, 1)
         process.recognize(frame)
 
-        display_frame = frame.copy();
-        process.draw_hands(display_frame)
-        # display_frame= cv2.flip(display_frame, 1)
-        process.draw_ui(display_frame)
+        if config.SHOW_WINDOW:
+            display_frame = frame.copy();
+            process.draw_hands(display_frame)
+            # display_frame= cv2.flip(display_frame, 1)
+            process.draw_ui(display_frame)
 
-        cv2.imshow('Airy Hand Magic', display_frame)
+            cv2.imshow('Airy Hand Magic', display_frame)
         if cv2.waitKey(5) & 0xFF == 27:
             print('Exiting...')
             break

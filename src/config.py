@@ -6,6 +6,7 @@ from motion.click import ClickMotion
 from motion.scroll import ScrollMotion
 from motion.type import TypeMotion
 
+SHOW_WINDOW = True
 MIN_DETECTION_CONFIDENCE = 0.7
 MIN_TRACKING_CONFIDENCE = 0.5
 NUM_HANDS = 1
