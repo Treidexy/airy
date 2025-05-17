@@ -50,7 +50,11 @@ Gesture.RING = Gesture.from_fingy(2)
 Gesture.PINKY = Gesture.from_fingy(3)
 
 Gesture.NONE = Gesture(0)
-Gesture.PALM = Gesture.THUMB | Gesture.INDEX | Gesture.MIDDLE | Gesture.RING | Gesture.PINKY
+Gesture.ONE = Gesture.NONE | Gesture.INDEX
+Gesture.TWO = Gesture.ONE | Gesture.MIDDLE
+Gesture.THREE = Gesture.TWO | Gesture.RING
+Gesture.FOUR = Gesture.THREE | Gesture.PINKY
+Gesture.FIVE = Gesture.FOUR | Gesture.THUMB
 
 class Motion:
     def draw(self, frame):

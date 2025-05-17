@@ -8,15 +8,15 @@ from scipy import stats
 
 HandLandmark = mp.solutions.hands.HandLandmark
 
-class ClickMotion(Motion):
-    def __init__(self, button):
+class TypeMotion(Motion):
+    def __init__(self, text):
         self.list = TimedList()
-        self.button = button
+        self.text = text
 
     def draw(self, frame):
         pass
 
     def update(self, hand_landmarks, frame):
         if len(self.list) == 0:
-            os.system(f'ydotool click c{self.button}')
+            os.system(f'ydotool type "{self.text}"')
         self.list.add(0, delay=0.8)
