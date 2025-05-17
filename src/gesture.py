@@ -1,5 +1,6 @@
 import mediapipe as mp
 import numpy as np
+import cv2
 from motion.base import Motion, Gesture
 from motion.swap_workspace import SwapWorkspaceMotion
 from motion.mouse import MouseMotion
@@ -28,13 +29,17 @@ motions: dict[Gesture, Motion] = {
     Gesture.BACK | Gesture.THREE: TypeMotion('https://youtube.com\\n'),
     Gesture.BACK | Gesture.FOUR: TypeMotion('f'),
 }
+motions = {}
 
 handmarks = None
 side = None
+gesture = None
 
 def get_gesture(landmarks: list, side: int) -> Gesture:
     # gesture = Gesture.from_side(side)
-    gesture = Gesture.NONE
+    gesture: Gesture = Gesture.NONE
+
+    s = side - 0.5
 
     a = landmarks[HandLandmark.INDEX_FINGER_MCP]
     b = landmarks[HandLandmark.PINKY_MCP]
@@ -42,27 +47,70 @@ def get_gesture(landmarks: list, side: int) -> Gesture:
     # https://www.geeksforgeeks.org/orientation-3-ordered-points/
     o = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
 
-    if o * (side - .5) > 0:
-        print('he')
+    dx = a.x - c.x
+    dy = a.y - c.y
+    angle = np.arctan2(dx, dy)
+    del a, b, c
+
+    print(angle)
+    if 2.8 < angle or angle < -2.5:
+        gesture |= Gesture.UP
+    elif -1.4 < angle and angle < 0.6:
+        gesture |= Gesture.DOWN
+    elif -1.4 > angle and angle > -2.5:
+        gesture |= Gesture.LEFT
+    elif 0.6 < angle and angle < 2.8:
+        gesture |= Gesture.RIGHT
+
+    if o * s > 0:
         gesture |= Gesture.BACK
 
-    if o * (landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.THUMB_IP].x) > 0:
+
+    if gesture.dir() == Gesture.UP:
+        t = landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.THUMB_IP].x
+    elif gesture.dir() == Gesture.DOWN:
+        t = landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.THUMB_IP].x
+        t = -t
+    elif gesture.dir() == Gesture.LEFT:
+        t = landmarks[HandLandmark.THUMB_TIP].y - landmarks[HandLandmark.THUMB_IP].y
+        t = -t
+    elif gesture.dir() == Gesture.RIGHT:
+        t = landmarks[HandLandmark.THUMB_TIP].y - landmarks[HandLandmark.THUMB_IP].y
+    if o * t > 0:
         gesture |= Gesture.THUMB
     
     tip_ids = [HandLandmark.INDEX_FINGER_TIP, HandLandmark.MIDDLE_FINGER_TIP, HandLandmark.RING_FINGER_TIP, HandLandmark.PINKY_TIP]
     pip_ids = [HandLandmark.INDEX_FINGER_PIP, HandLandmark.MIDDLE_FINGER_PIP, HandLandmark.RING_FINGER_PIP, HandLandmark.PINKY_PIP]
     mcp_ids = [HandLandmark.INDEX_FINGER_MCP, HandLandmark.MIDDLE_FINGER_MCP, HandLandmark.RING_FINGER_MCP, HandLandmark.PINKY_MCP]
     for fingy, (tip_id, pip_id, mcp_id) in enumerate(zip(tip_ids, pip_ids, mcp_ids)):
-        if landmarks[tip_id].y < landmarks[mcp_id].y and landmarks[tip_id].y < landmarks[pip_id].y:
+        if gesture.dir() == Gesture.UP:
+            a = landmarks[tip_id].y - landmarks[pip_id].y
+            b = landmarks[tip_id].y - landmarks[mcp_id].y
+        elif gesture.dir() == Gesture.DOWN:
+            a = landmarks[tip_id].y - landmarks[pip_id].y
+            b = landmarks[tip_id].y - landmarks[mcp_id].y
+            a = -a
+            b = -b
+        elif gesture.dir() == Gesture.LEFT:
+            a = landmarks[tip_id].x - landmarks[pip_id].x
+            b = landmarks[tip_id].x - landmarks[mcp_id].x
+        elif gesture.dir() == Gesture.RIGHT:
+            a = landmarks[tip_id].x - landmarks[pip_id].x
+            b = landmarks[tip_id].x - landmarks[mcp_id].x
+            a = -a
+            b = -b
+
+        if a < 0 and b < 0:
             gesture |= Gesture.from_fingy(fingy)
     return gesture
 
 def recognize(frame):
-    global handmarks, side
+    global handmarks, side, gesture
 
     results = recognizer.process(frame)
     handmarks = None
     side = None
+    gesture = None
 
     if results.multi_handedness and results.multi_hand_landmarks:
         for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
@@ -76,7 +124,7 @@ def recognize(frame):
                 motion.update(hand_landmarks.landmark, frame)
 
 def draw_hands(frame):
-    if handmarks and side:
+    if handmarks and side != None:
         mp_drawing.draw_landmarks(
             frame,
             handmarks,
@@ -88,4 +136,5 @@ def draw_hands(frame):
         motion.draw(frame)
 
 def draw_ui(frame):
-    pass
+    if gesture:
+        cv2.putText(frame, str(gesture), (0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0))
