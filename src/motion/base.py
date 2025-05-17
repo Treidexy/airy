@@ -7,11 +7,11 @@ class Gesture:
 
     def from_side(side):
         return Gesture(side)
-    def from_side(face):
+    def from_face(face):
         return Gesture(face << 1)
     # THUMB IS NOT A FINGY (for convenience)
     def from_fingy(fingy):
-        return Gesture(1 << (fingy + 3))
+        return Gesture(1 << (fingy + 4))
 
     def __or__(self, other):
         if isinstance(other, Gesture):

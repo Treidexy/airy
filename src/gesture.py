@@ -3,6 +3,7 @@ import numpy as np
 from motion.base import Motion, Gesture
 from motion.swap_workspace import SwapWorkspaceMotion
 from motion.mouse import MouseMotion
+from motion.click import ClickMotion
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -18,6 +19,7 @@ recognizer = mp_hands.Hands(
 motions: dict[Gesture, Motion] = {
     Gesture.RIGHT | Gesture.FRONT | Gesture.PALM: SwapWorkspaceMotion(),
     Gesture.RIGHT | Gesture.FRONT | Gesture.INDEX: MouseMotion(),
+    Gesture.RIGHT | Gesture.BACK | Gesture.INDEX: ClickMotion(),
 }
 
 hands = [None, None]
@@ -30,6 +32,10 @@ def get_gesture(landmarks: list, side: int) -> Gesture:
     c = landmarks[HandLandmark.WRIST]
     # https://www.geeksforgeeks.org/orientation-3-ordered-points/
     o = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
+
+    if o * (side - .5) > 0:
+        print('he')
+        gesture |= Gesture.BACK
 
     if o * (landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.THUMB_IP].x) > 0:
         gesture |= Gesture.THUMB
@@ -54,6 +60,7 @@ def recognize(frame):
             
             hands[side] = hand_landmarks
             gesture = get_gesture(hand_landmarks.landmark, side)
+            print(gesture, Gesture.RIGHT | Gesture.FRONT | Gesture.PALM)
             motion = motions.get(gesture)
             if motion:
                 motion.update(hand_landmarks.landmark, frame)

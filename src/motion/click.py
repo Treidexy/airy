@@ -10,7 +10,6 @@ HandLandmark = mp.solutions.hands.HandLandmark
 
 class ClickMotion(Motion):
     def __init__(self):
-        super().__init__(hand='Right', gesture='Pointing_Up')
         self.list = TimedList()
 
     def draw(self, frame):
