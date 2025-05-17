@@ -23,7 +23,14 @@ hands = [None, None]
 def get_gesture(landmarks: list, side: int) -> Gesture:
     gesture = Gesture.from_side(side)
 
-    
+    a = landmarks[HandLandmark.INDEX_FINGER_MCP]
+    b = landmarks[HandLandmark.PINKY_MCP]
+    c = landmarks[HandLandmark.WRIST]
+    # https://www.geeksforgeeks.org/orientation-3-ordered-points/
+    o = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y)
+
+    if o * (landmarks[HandLandmark.THUMB_TIP].x - landmarks[HandLandmark.INDEX_FINGER_MCP].x) > 0:
+        gesture |= Gesture.THUMB
     
     finger_tips_ids = [HandLandmark.INDEX_FINGER_TIP, HandLandmark.MIDDLE_FINGER_TIP, HandLandmark.RING_FINGER_TIP, HandLandmark.PINKY_TIP]
     for fingy, tip_id in enumerate(finger_tips_ids):
