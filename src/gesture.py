@@ -21,15 +21,18 @@ recognizer = mp_hands.Hands(
 )
 
 motions: dict[Gesture, Motion] = {
-    Gesture.FRONT | Gesture.FIVE: SwapWorkspaceMotion(),
-    Gesture.FRONT | Gesture.ONE: MouseMotion(),
-    Gesture.FRONT | Gesture.TWO: ScrollMotion(),
-    Gesture.BACK | Gesture.ONE: ClickMotion(0),
-    Gesture.BACK | Gesture.TWO: ClickMotion(1),
-    Gesture.BACK | Gesture.THREE: TypeMotion('https://youtube.com\\n'),
-    Gesture.BACK | Gesture.FOUR: TypeMotion('f'),
+    Gesture.UP | Gesture.FRONT | Gesture.FIVE: SwapWorkspaceMotion(),
+    Gesture.UP | Gesture.FRONT | Gesture.ONE: MouseMotion(),
+    Gesture.UP | Gesture.FRONT | Gesture.TWO: ScrollMotion(),
+    Gesture.UP | Gesture.BACK | Gesture.ONE: ClickMotion('c0'),
+    Gesture.UP | Gesture.BACK | Gesture.TWO: ClickMotion('c1'),
+    Gesture.UP | Gesture.BACK | Gesture.THREE: TypeMotion('https://youtube.com\\n'),
+    Gesture.UP | Gesture.BACK | Gesture.FOUR: TypeMotion('f'),
+    Gesture.LEFT | Gesture.BACK | Gesture.TWO: TypeMotion('j'),
+    Gesture.RIGHT | Gesture.BACK | Gesture.TWO: TypeMotion('l'),
+    Gesture.DOWN | Gesture.BACK | Gesture.TWO: ClickMotion('40'),
+    Gesture.DOWN | Gesture.BACK | Gesture.ONE: ClickMotion('80'),
 }
-motions = {}
 
 handmarks = None
 side = None
@@ -52,7 +55,6 @@ def get_gesture(landmarks: list, side: int) -> Gesture:
     angle = np.arctan2(dx, dy)
     del a, b, c
 
-    print(angle)
     if 2.8 < angle or angle < -2.5:
         gesture |= Gesture.UP
     elif -1.4 < angle and angle < 0.6:
