@@ -1,6 +1,5 @@
 import os
 import cv2
-import time
 
 import const
 import gesture
@@ -17,8 +16,6 @@ def main():
         print("Error: Could not open webcam.")
         return
     
-    gesture.init()
-    frame_timestamp_ms = 0
     print("Starting webcam feed. Press 'ESC' to quit.")
 
     while cap.isOpened():
@@ -28,12 +25,12 @@ def main():
             break
 
         frame = cv2.flip(frame, 1)
-        gesture.recognize(frame, frame_timestamp_ms)
+        gesture.recognize(frame)
 
-        frame_timestamp_ms = int(time.time() * 1000)
         display_frame = frame.copy();
-
-        gesture.draw(display_frame)
+        gesture.draw_hands(display_frame)
+        # display_frame= cv2.flip(display_frame, 1)
+        gesture.draw_ui(display_frame)
 
         cv2.imshow('Airy Hand Magic', display_frame)
         if cv2.waitKey(5) & 0xFF == 27:
