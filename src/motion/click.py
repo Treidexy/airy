@@ -18,5 +18,7 @@ class ClickMotion(Motion):
 
     def update(self, hand_landmarks, frame):
         if len(self.list) == 0:
-            os.system(f'ydotool click {self.button}')
+            os.system(f'ydotool click 4{self.button}')
         self.list.add(0, delay=0.8)
+    def cancel(self):
+        os.system(f'ydotool click 8{self.button}')

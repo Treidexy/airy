@@ -28,3 +28,5 @@ class ScrollMotion(Motion):
             dy = (y[1] - y[0]) * frame_height * 0.3
             # print(dx, dy)
             os.system(f'ydotool mousemove -w -x {dx} -y {-dy}')
+    def cancel(self):
+        self.list.clear()

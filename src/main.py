@@ -1,16 +1,10 @@
 import os
 import cv2
 
-import const
+import config
 import gesture
 
 def main():
-    if not os.path.exists(const.MODEL_PATH):
-        print(f"Error: Model file '{const.MODEL_PATH}' not found.")
-        print(f"Please download it from: https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task")
-        print(f"And place it in the same directory as this script or update MODEL_PATH.")
-        return
-
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open webcam.")

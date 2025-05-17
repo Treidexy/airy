@@ -31,3 +31,5 @@ class SwapWorkspaceMotion(Motion):
                     os.system('hyprctl dispatch workspace -1')
                 else:
                     os.system('hyprctl dispatch workspace +1')
+    def cancel(self):
+        self.list.clear()

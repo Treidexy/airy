@@ -1,6 +1,3 @@
-import mediapipe as mp
-import cv2
-
 class Gesture:
     def __init__(self, n: int):
         self.n = n
@@ -64,4 +61,6 @@ class Motion:
     def draw(self, frame):
         pass
     def update(self, landmarks, frame):
+        pass
+    def cancel(self):
         pass

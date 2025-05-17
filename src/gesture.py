@@ -1,12 +1,9 @@
 import mediapipe as mp
 import numpy as np
 import cv2
-from motion.base import Motion, Gesture
-from motion.swap_workspace import SwapWorkspaceMotion
-from motion.mouse import MouseMotion
-from motion.click import ClickMotion
-from motion.scroll import ScrollMotion
-from motion.type import TypeMotion
+
+from motion.base import Gesture
+from config import motions
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
@@ -19,20 +16,6 @@ recognizer = mp_hands.Hands(
     min_detection_confidence = 0.7,
     min_tracking_confidence = 0.5,
 )
-
-motions: dict[Gesture, Motion] = {
-    Gesture.UP | Gesture.FRONT | Gesture.FIVE: SwapWorkspaceMotion(),
-    Gesture.UP | Gesture.FRONT | Gesture.ONE: MouseMotion(),
-    Gesture.UP | Gesture.FRONT | Gesture.TWO: ScrollMotion(),
-    Gesture.UP | Gesture.BACK | Gesture.ONE: ClickMotion('c0'),
-    Gesture.UP | Gesture.BACK | Gesture.TWO: ClickMotion('c1'),
-    Gesture.UP | Gesture.BACK | Gesture.THREE: TypeMotion('https://youtube.com\\n'),
-    Gesture.UP | Gesture.BACK | Gesture.FOUR: TypeMotion('f'),
-    Gesture.LEFT | Gesture.BACK | Gesture.TWO: TypeMotion('j'),
-    Gesture.RIGHT | Gesture.BACK | Gesture.TWO: TypeMotion('l'),
-    Gesture.DOWN | Gesture.BACK | Gesture.TWO: ClickMotion('40'),
-    Gesture.DOWN | Gesture.BACK | Gesture.ONE: ClickMotion('80'),
-}
 
 handmarks = None
 side = None
@@ -110,20 +93,31 @@ def recognize(frame):
     global handmarks, side, gesture
 
     results = recognizer.process(frame)
-    handmarks = None
-    side = None
-    gesture = None
+    # handmarks = None
+    # side = None
+    # gesture = None
 
     if results.multi_handedness and results.multi_hand_landmarks:
         for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
             side = handedness.classification[0].index
             
             handmarks = hand_landmarks
+            old_gesture = gesture
             gesture = get_gesture(hand_landmarks.landmark, side)
             # print(gesture, Gesture.RIGHT | Gesture.FRONT | Gesture.FIVE)
-            motion = motions.get(gesture)
-            if motion:
-                motion.update(hand_landmarks.landmark, frame)
+            if old_gesture != gesture:
+                old_motionz = motions.get(old_gesture)
+                if old_motionz:
+                    for old_motion in old_motionz:
+                        old_motion.cancel()
+            motionz = motions.get(gesture)
+            if motionz:
+                for motion in motionz:
+                    motion.update(hand_landmarks.landmark, frame)
+    else:
+        handmarks = None
+        side = None
+        gesture = None
 
 def draw_hands(frame):
     if handmarks and side != None:
@@ -134,8 +128,9 @@ def draw_hands(frame):
             mp_drawing_styles.get_default_hand_landmarks_style(),
             mp_drawing_styles.DrawingSpec(color=(side * 255,0, (1 - side) * 255), thickness=2),
         )
-    for motion in motions.values():
-        motion.draw(frame)
+    for motionz in motions.values():
+        for motion in motionz:
+            motion.draw(frame)
 
 def draw_ui(frame):
     if gesture:

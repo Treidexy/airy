@@ -20,3 +20,5 @@ class TypeMotion(Motion):
         if len(self.list) == 0:
             os.system(f'ydotool type "{self.text}"')
         self.list.add(0, delay=0.8)
+    def cancel(self):
+        self.list.clear()

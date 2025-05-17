@@ -29,3 +29,5 @@ class MouseMotion(Motion):
             # print(dx, dy)
             if abs(dx) + abs(dy) < 50:
                 os.system(f'ydotool mousemove -x {dx} -y {dy}')
+    def cancel(self):
+        self.list.clear()
