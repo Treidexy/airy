@@ -40,6 +40,8 @@ python src/main,py
 
 ## Gestures
 
+You can setup any gestures you want in `src/config.py`. But here are the default gestures.
+
 ### Swap Workspace
 
 With an open palm on right hand, smoothly drag your hand in one direction.
@@ -54,20 +56,16 @@ With both your right index and middle fingers pointing up, move your hand around
 
 ### Click
 
-With your palm facing away from the camera point one finger to left-click and two fingers to right-click.
+With your palm facing away from the camera point one finger to left-click and two fingers to right-click. If you point down, you can drag the mouse,
 
 ### Youtube.com
 
-With your palm facing away from the camera, put up three fingers to type `https://youtube.com\n`.
+With your palm facing away from the camera, put up three fingers to the right to type `https://youtube.com\n`.
 
 ### Fullscreen
 
 With your palm facing away from the camera, put up four fingers to press `f`.
-
+Jump
 ### Jump
 
 With two fingers, point left or right to press `j` or `l`.
-
-### Hold
-
-Palm away, point two fingers down to hold the mouse button. Point one finger down to release.

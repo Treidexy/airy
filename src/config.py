@@ -19,6 +19,7 @@ motions: dict[Gesture, list[Motion]] = {
     UP | FRONT | FIVE: [SwapWorkspaceMotion()],
     UP | FRONT | ONE: [MouseMotion()],
     DOWN | BACK | ONE: [ClickMotion('0'), MouseMotion()],
+    DOWN | BACK | TWO: [ClickMotion('1'), MouseMotion()],
     UP | FRONT | TWO: [ScrollMotion()],
     UP | BACK | ONE: [ClickMotion('0')],
     UP | BACK | TWO: [ClickMotion('1')],
