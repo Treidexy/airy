@@ -32,7 +32,6 @@ def main():
 
         frame_timestamp_ms = int(time.time() * 1000)
         display_frame = frame.copy();
-        image_height, image_width, _ = display_frame.shape
 
         gesture.draw(display_frame)
 
