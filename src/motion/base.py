@@ -9,7 +9,4 @@ class Motion:
     def draw(self, frame):
         pass
     def update(self, hand_landmarks, frame):
-        self.active = True
-    def cancel(self):
-        self.active = False
         pass

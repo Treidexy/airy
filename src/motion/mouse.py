@@ -24,13 +24,9 @@ class MouseMotion(Motion):
         hand = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
         self.list.add((hand.x, hand.y), delay=0.5)
 
-        print(len(self.list))
         if len(self.list) > 5:
             x, y = self.list.get_separate_lists()
             dx = (x[1] - x[0]) * frame_width * 3
             dy = (y[1] - y[0]) * frame_height * 3
             # print(dx, dy)
             os.system(f'ydotool mousemove -x {dx} -y {dy}')
-    def clear(self):
-        super().clear()
-        self.list.clear()
