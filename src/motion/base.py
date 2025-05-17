@@ -26,6 +26,14 @@ class Gesture:
     
     def __str__(self):
         return f"{self.n:b}"
+    
+    def __hash__(self):
+        return hash(self.n)
+    
+    def __eq__(self, other):
+        if not isinstance(other, Gesture):
+            return NotImplemented
+        return self.n == other.n
 
 Gesture.LEFT = Gesture(0 << 0)
 Gesture.RIGHT = Gesture(1 << 0)
@@ -37,10 +45,10 @@ Gesture.RING = Gesture(1 << 4)
 Gesture.PINKY = Gesture(1 << 5)
 
 Gesture.NONE = Gesture(0)
-Gesture.ALL = Gesture.RIGHT | Gesture.THUMB | Gesture.INDEX | Gesture.MIDDLE | Gesture.RING | Gesture.PINKY
+Gesture.PALM = Gesture.THUMB | Gesture.INDEX | Gesture.MIDDLE | Gesture.RING | Gesture.PINKY
 
 class Motion:
     def draw(self, frame):
         pass
-    def update(self, hand_landmarks, frame):
+    def update(self, landmarks, frame):
         pass

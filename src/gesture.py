@@ -15,7 +15,7 @@ recognizer = mp_hands.Hands(
 )
 
 motions: dict[Gesture, Motion] = {
-    Gesture.ALL: SwapWorkspaceMotion()
+    Gesture.RIGHT | Gesture.PALM: SwapWorkspaceMotion()
 }
 
 hands = [None, None]
@@ -50,7 +50,9 @@ def recognize(frame):
             
             hands[side] = hand_landmarks
             gesture = get_gesture(hand_landmarks.landmark, side)
-            print(gesture)
+            motion = motions.get(gesture)
+            if motion:
+                motion.update(hand_landmarks.landmark, frame)
 
 def draw_hands(frame):
     for side, hand_landmarks in enumerate(hands):
@@ -62,6 +64,8 @@ def draw_hands(frame):
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.DrawingSpec(color=(side * 255,0, (1 - side) * 255), thickness=2),
             )
+    for motion in motions.values():
+        motion.draw(frame)
 
 def draw_ui(frame):
     pass
