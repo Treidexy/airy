@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 
 from gesture import Gesture
+import config
 from config import motions
 
 mp_hands = mp.solutions.hands
@@ -12,9 +13,9 @@ mp_drawing_styles = mp.solutions.drawing_styles
 HandLandmark = mp.solutions.hands.HandLandmark
 
 recognizer = mp_hands.Hands(
-    max_num_hands = 1,
-    min_detection_confidence = 0.7,
-    min_tracking_confidence = 0.5,
+    max_num_hands = config.NUM_HANDS,
+    min_detection_confidence = config.MIN_DETECTION_CONFIDENCE,
+    min_tracking_confidence = config.MIN_TRACKING_CONFIDENCE,
 )
 
 handmarks = None
