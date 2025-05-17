@@ -28,7 +28,7 @@ yay -S Hyprland ydotool
 systemctl --now enable ydotool.service
 ```
 
-_Note: Obviously wapping workspaces only work if Hyprland is active_
+_Note: Obviously swapping workspaces only work if Hyprland is active_
 
 ### Run
 
