@@ -24,8 +24,8 @@ class ScrollMotion(Motion):
 
         if len(self.list) > 5:
             x, y = self.list.get_separate_lists()
-            dx = (x[1] - x[0]) * frame_width * 0.3
-            dy = (y[1] - y[0]) * frame_height * 0.3
+            dx = (x[1] - x[0]) * frame_width * 0.1
+            dy = (y[1] - y[0]) * frame_height * 0.1
             # print(dx, dy)
             os.system(f'ydotool mousemove -w -x {dx} -y {-dy}')
     def cancel(self):
